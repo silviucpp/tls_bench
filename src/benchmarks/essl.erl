@@ -69,36 +69,38 @@ accept(#state{socket = LSocket, tls_opt = TlsOpt, mod = Mod}) ->
             etls:accept(LSocket);
         ?MOD_SSL ->
             ssl:transport_accept(LSocket);
-        _ ->
+        ?MOD_P1_TLS ->
+            {ok, Sock} = gen_tcp:accept(LSocket),
+            p1_tls:tcp_to_tls(Sock, TlsOpt);
+        ?MOD_FAST_TLS ->
+            {ok, Sock} = gen_tcp:accept(LSocket),
+            fast_tls:tcp_to_tls(Sock, TlsOpt);
+        ?MOD_TCP ->
             gen_tcp:accept(LSocket)
     end,
 
     case Resp of
         {ok, Socket} ->
-            {ok, #state {socket = Socket, mod = Mod, tls_opt = TlsOpt}};
+            {ok, #state {socket = Socket, mod = Mod}};
         _ ->
             Resp
     end.
 
-handshake(#state{socket = Socket, tls_opt = TlsOpt, mod = Mod} = State) ->
+handshake(#state{socket = Socket, mod = Mod} = State) ->
     Resp = case Mod of
         ?MOD_ETLS ->
             etls:handshake(Socket);
-        ?MOD_FAST_TLS ->
-            fast_tls:tcp_to_tls(Socket, TlsOpt);
-        ?MOD_P1_TLS ->
-            p1_tls:tcp_to_tls(Socket, TlsOpt);
         ?MOD_SSL ->
             ssl:ssl_accept(Socket);
-        ?MOD_TCP ->
+        _ ->
             ok
     end,
 
     case Resp of
         ok ->
-            {ok, State#state{tls_opt = undefined}};
+            {ok, State};
         {ok, TlsSocket} ->
-            {ok, State#state{socket = TlsSocket, tls_opt = undefined}};
+            {ok, State#state{socket = TlsSocket}};
         _ ->
             Resp
     end.
@@ -122,19 +124,9 @@ controlling_process(#state{socket = Socket, mod = Mod}, Pid) ->
         ?MOD_ETLS ->
             etls:controlling_process(Socket, Pid);
         ?MOD_FAST_TLS ->
-            case is_tuple(Socket) of
-                true ->
-                    fast_tls:controlling_process(Socket, Pid);
-                _ ->
-                    gen_tcp:controlling_process(Socket, Pid)
-            end;
+            fast_tls:controlling_process(Socket, Pid);
         ?MOD_P1_TLS ->
-            case is_tuple(Socket) of
-                true ->
-                    p1_tls:controlling_process(Socket, Pid);
-                _ ->
-                    gen_tcp:controlling_process(Socket, Pid)
-            end;
+            p1_tls:controlling_process(Socket, Pid);
         ?MOD_SSL ->
             ssl:controlling_process(Socket, Pid);
         ?MOD_TCP ->
