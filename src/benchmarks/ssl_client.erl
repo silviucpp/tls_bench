@@ -20,7 +20,7 @@ benchmark(ClientMod, Port, ConcurrentConnections, Requests, MessageLength) ->
     SeqPerClient = lists:seq(1, ReqPerConnection),
 
     ?INFO_MSG("## start testing on ~p:~p", [Host, Port]),
-    ?INFO_MSG("## requests per connection: ~p msg length: ~p total requests: ~p concurrency level: ~p", [
+    ?INFO_MSG("## requests per connection: ~p msg length: ~s total requests: ~p concurrency level: ~p", [
         ReqPerConnection,
         tlsb_utils:format_size(MessageLength),
         Requests,
