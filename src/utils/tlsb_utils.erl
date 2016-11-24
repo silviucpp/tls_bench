@@ -1,7 +1,17 @@
 -module(tlsb_utils).
 -author("silviu.caragea").
 
--export([lookup/2, lookup/3, now/0, env/1, replace/3]).
+-export([
+    env/1,
+    lookup/2,
+    lookup/3,
+    replace/3,
+    now/0,
+    format_size/1
+]).
+
+env(Attr) ->
+    application:get_env(tls_bench, Attr).
 
 lookup(Key, List) ->
     lookup(Key, List, null).
@@ -21,5 +31,9 @@ now() ->
     {M, S, U} = erlang:now(),
     integer_to_binary(M * 1000000000 + S * 1000 + U).
 
-env(Attr) ->
-    application:get_env(tls_bench, Attr).
+format_size(Size) ->
+    format_size(Size, ["B","KB","MB","GB","TB","PB"]).
+
+format_size(S, [_|[_|_] = L]) when S >= 1024 -> format_size(S/1024, L);
+format_size(S, [M|_]) ->
+    io_lib:format("~.2f ~s", [float(S), M]).

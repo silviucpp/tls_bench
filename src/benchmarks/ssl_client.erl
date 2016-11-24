@@ -20,7 +20,11 @@ benchmark(ClientMod, Port, ConcurrentConnections, Requests, MessageLength) ->
     SeqPerClient = lists:seq(1, ReqPerConnection),
 
     ?INFO_MSG("## start testing on ~p:~p", [Host, Port]),
-    ?INFO_MSG("## requests per connection: ~p msg length: ~p total requests: ~p concurrency level: ~p", [ReqPerConnection, MessageLength, Requests, ConcurrentConnections]),
+    ?INFO_MSG("## requests per connection: ~p msg length: ~p total requests: ~p concurrency level: ~p", [
+        ReqPerConnection,
+        tlsb_utils:format_size(MessageLength),
+        Requests,
+        ConcurrentConnections]),
 
     ClientFun = fun() ->
         {ok, Socket} = essl:connect(ClientMod, Host, Port, TcpOpt, TlsOpt, ConnectTimeout),
@@ -35,7 +39,14 @@ benchmark(ClientMod, Port, ConcurrentConnections, Requests, MessageLength) ->
 
     {Ts, _} = timer:tc(fun() -> multi_spawn:do_work(ClientFun, ConcurrentConnections) end),
 
-    ?INFO_MSG(<<"## completed in :~p ms">>, [Ts/1000]).
+    TsMs = Ts/1000,
+    TsSec = erlang:max(1, TsMs/1000),
+
+    BandwidthSize = 2*MessageLength*Requests,
+    BytesPerSec = BandwidthSize/TsSec,
+
+    ?INFO_MSG(<<"## completed in :~p ms">>, [TsMs]),
+    ?INFO_MSG(<<"## bandwidth throughput: ~s/s">>, [tlsb_utils:format_size(BytesPerSec)]).
 
 recv(_Socket, 0, _Timeout) ->
     ok;
