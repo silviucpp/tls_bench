@@ -63,8 +63,10 @@ benchmark(ClientMod, Port, ConcurrentConnections, Requests, MessageLength) ->
     BandwidthSize = 2*MessageLength*Requests,
     BytesPerSec = BandwidthSize/TsSec,
 
+    ?INFO_MSG("################################################", []),
     ?INFO_MSG("## completed in :~p ms", [TsMs]),
-    ?INFO_MSG("## bandwidth throughput: ~s/s", [tlsb_utils:format_size(BytesPerSec)]).
+    ?INFO_MSG("## bandwidth throughput: ~s/s", [tlsb_utils:format_size(BytesPerSec)]),
+    ?INFO_MSG("################################################", []).
 
 recv(_Socket, Bytes, _Timeout) when Bytes =< 0 ->
     case Bytes < 0 of
