@@ -47,6 +47,8 @@ get_mod_tls(Opt) ->
 get_port(Opt) ->
     tlsb_utils:lookup(port, Opt).
 
+get_ciphers(_, null) ->
+    null;
 get_ciphers(?MOD_SSL, Ciphers) ->
     Ciphers;
 get_ciphers(_, Ciphers) ->
