@@ -154,16 +154,15 @@ send(#state{socket = Socket, mod = Mod}, Data) ->
 recv(State) ->
     recv(State, infinity).
 
-recv(#state{socket = Socket} = State, Timeout) ->
+recv(#state{socket = Socket, mod = Mod} = State, Timeout) ->
     receive
 
         {etls, Socket, Data} ->
             {essl, State, Data};
         {ssl, Socket, Data} ->
             {essl, State, Data};
-        {tcp, TcpSocket, TlsData} ->
-            read_tcp(TcpSocket, State, TlsData, Timeout);
-
+        {tcp, _TcpSocket, Data} ->
+            {essl, State, read_tcp(Mod, Socket, Data)};
         {etls_closed, Socket} ->
             {essl_closed, State};
         {ssl_closed, Socket} ->
@@ -179,42 +178,14 @@ recv(#state{socket = Socket} = State, Timeout) ->
 
 % private methods
 
-read_tcp(TcpSocket, #state{mod = Mod, socket = TlsSocket} = State, TlsData, Timeout) ->
-    {ok, Data} = case Mod of
-         ?MOD_FAST_TLS ->
-             fast_tls:recv_data(TlsSocket, TlsData);
-         ?MOD_P1_TLS ->
-             p1_tls:recv_data(TlsSocket, TlsData);
-         ?MOD_TCP ->
-             {ok, TlsData}
-    end,
-
-    case Data of
-        <<>> ->
-            %tls handshake process or tls close. read more data until we get something
-            {ok, [{active, CurrentActive}]} = inet:getopts(TcpSocket, [active]),
-            ok = inet:setopts(TcpSocket, [{active, false}]),
-
-            case read_packet(Mod, TlsSocket, Timeout) of
-                {ok, Bin} ->
-                    ok = inet:setopts(TcpSocket, [{active, CurrentActive}]),
-                    {essl, State, Bin};
-                {error, closed} ->
-                    {essl_closed, State};
-                {errr, Unexpected} ->
-                    Unexpected
-            end;
-        _ ->
-            {essl, State, Data}
-    end.
-
-read_packet(Mod, Socket, Timeout) ->
-    case Mod of
-        ?MOD_FAST_TLS ->
-            fast_tls:recv(Socket, 0, Timeout);
-        ?MOD_P1_TLS ->
-            p1_tls:recv(Socket, 0, Timeout)
- end.
+read_tcp(?MOD_TCP, _Socket, Data) ->
+    Data;
+read_tcp(?MOD_FAST_TLS, Socket, TlsData) ->
+    {ok, Data} = fast_tls:recv_data(Socket, TlsData),
+    Data;
+read_tcp(?MOD_P1_TLS, Socket, TlsData) ->
+    {ok, Data} = p1_tls:recv_data(Socket, TlsData),
+    Data.
 
 get_listen_options(Mod, TlsOpt, ListenOpt) ->
     case Mod =:= ?MOD_ETLS orelse Mod =:= ?MOD_SSL of

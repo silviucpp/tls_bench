@@ -47,7 +47,12 @@ loop(Socket) ->
     case essl:recv(Socket) of
         {essl, Socket, Data} ->
             %?INFO_MSG("Got SSL packet: ~p", [Data]),
-            ok = essl:send(Socket, Data),
+            case Data of
+                <<>> ->
+                    ok;
+                _ ->
+                    ok = essl:send(Socket, Data)
+            end,
             essl:setopts(Socket, [{active, once}]),
             loop(Socket);
         {essl_closed, Sock} ->
