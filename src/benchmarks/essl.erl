@@ -25,12 +25,10 @@ connect(Mod, Host, Port, TcpOptions, TlsOptions, Timeout) ->
         ?MOD_FAST_TLS ->
             {ok, TcpSocket} = gen_tcp:connect(Host, Port, TcpOptions, Timeout),
             {ok, TlsSocket} = fast_tls:tcp_to_tls(TcpSocket, TlsOptions),
-            ok = inet:setopts(TlsSocket, TlsOptions),
             {ok, TlsSocket};
         ?MOD_P1_TLS ->
             {ok, TcpSocket} = gen_tcp:connect(Host, Port, TcpOptions, Timeout),
             {ok, TlsSocket} = p1_tls:tcp_to_tls(TcpSocket, TlsOptions),
-            ok = inet:setopts(TlsSocket, TlsOptions),
             {ok, TlsSocket};
         ?MOD_SSL ->
             ssl:connect(Host, Port, TcpOptions ++ TlsOptions, Timeout);
@@ -87,23 +85,14 @@ accept(#state{socket = LSocket, tls_opt = TlsOpt, mod = Mod}) ->
             Resp
     end.
 
-handshake(#state{socket = Socket, mod = Mod} = State) ->
-    Resp = case Mod of
+handshake(#state{socket = Socket, mod = Mod}) ->
+    case Mod of
         ?MOD_ETLS ->
             etls:handshake(Socket);
         ?MOD_SSL ->
             ssl:ssl_accept(Socket);
         _ ->
             ok
-    end,
-
-    case Resp of
-        ok ->
-            {ok, State};
-        {ok, TlsSocket} ->
-            {ok, State#state{socket = TlsSocket}};
-        _ ->
-            Resp
     end.
 
 setopts(#state{socket = Socket, mod = Mod}, Options) ->

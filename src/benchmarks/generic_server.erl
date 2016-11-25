@@ -30,9 +30,14 @@ accept(LSocket, TcpOpt) ->
 
     LoopFun = fun() ->
         %?INFO_MSG("Connection accepted: ~p", [self()]),
-        {ok, NewSock} = essl:handshake(Socket),
-        ok = essl:setopts(NewSock, TcpOpt),
-        loop(NewSock)
+        case essl:handshake(Socket) of
+            ok ->
+                ok = essl:setopts(Socket, TcpOpt),
+                loop(Socket);
+            Unexpected ->
+                ?ERROR_MSG("handshake failed:~p", [Unexpected]),
+                essl:close(Socket)
+        end
     end,
 
     ok = essl:controlling_process(Socket, spawn(LoopFun)),
