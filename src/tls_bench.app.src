@@ -2,7 +2,7 @@
     {description, "A framework for load testing the Erlang TLS and TCP libs"},
     {vsn, "1.0"},
     {registered, []},
-    {applications, [kernel, stdlib, lager, etls, ssl, p1_tls]},
+    {applications, [kernel, stdlib, etls, ssl, p1_tls]},
     {mod, {tls_bench_app, []}},
     {env, []}
 ]}.

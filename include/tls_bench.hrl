@@ -11,19 +11,19 @@
 %logs
 
 -define(PRINT_MSG(Format, Args),
-    io:format(Format, Args)).
+    io:format("PRINT "++Format++"~n", Args)).
 
 -define(DEBUG_MSG(Format, Args),
-    lager:debug(Format, Args)).
+    io:format("DEBUG "++Format++"~n", Args)).
 
 -define(INFO_MSG(Format, Args),
-    lager:info(Format, Args)).
+    io:format("INFO "++Format++"~n", Args)).
 
 -define(WARNING_MSG(Format, Args),
-    lager:warning(Format, Args)).
+    io:format("WARNING "++Format++"~n", Args)).
 
 -define(ERROR_MSG(Format, Args),
-    lager:error(Format, Args)).
+    io:format("ERROR "++Format++"~n", Args)).
 
 -define(CRITICAL_MSG(Format, Args),
-    lager:critical(Format, Args)).
+    io:format("CRITICAL "++Format++"~n", Args)).

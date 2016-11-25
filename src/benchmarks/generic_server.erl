@@ -19,9 +19,9 @@ server(Module, Config) ->
     {ok, LSocket} = essl:listen(Module, Port, ListenOpt, TlsOpt),
 
     ?INFO_MSG("~p start listening on port ~p with ~p acceptors", [Module, Port, Acceptors]),
-    ?INFO_MSG("~p listen_opt: ~p", [Module, ListenOpt]),
-    ?INFO_MSG("~p tls_opt: ~p", [Module, TlsOpt]),
-    ?INFO_MSG("~p tcp_opt: ~p", [Module, TcpOpt]),
+    ?INFO_MSG("~p listen_opt: ~200p", [Module, ListenOpt]),
+    ?INFO_MSG("~p tls_opt: ~200p", [Module, TlsOpt]),
+    ?INFO_MSG("~p tcp_opt: ~200p", [Module, TcpOpt]),
 
     lists:foreach(fun(_) -> spawn(fun() -> accept(LSocket, TcpOpt) end) end, lists:seq(1, Acceptors)).
 
