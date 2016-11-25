@@ -53,7 +53,7 @@ loop(Socket) ->
                 _ ->
                     ok = essl:send(Socket, Data)
             end,
-            essl:setopts(Socket, [{active, once}]),
+            ok = essl:setopts(Socket, [{active, once}]),
             loop(Socket);
         {essl_closed, Sock} ->
             %?INFO_MSG("Closing SSL socket: ~p", [Sock]),

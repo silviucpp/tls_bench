@@ -173,7 +173,7 @@ recv(#state{socket = Socket, mod = Mod} = State, Timeout) ->
         UnexpectedMsg ->
             UnexpectedMsg
     after Timeout ->
-        {error, Timeout}
+        {error, {timeout, Timeout}}
     end.
 
 % private methods
