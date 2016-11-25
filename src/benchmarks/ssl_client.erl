@@ -4,6 +4,17 @@
 
 -export([benchmark/5]).
 
+-define(SENT_BYTE, 2).
+
+-ifdef(check_data_valid).
+check(Data) ->
+    Data = <<?SENT_BYTE:(byte_size(Data))/little-signed-integer-unit:8>>,
+    ok.
+-define(CHECK_DATA(Data), check(Data)).
+-else.
+-define(CHECK_DATA(Data), ok).
+-endif.
+
 benchmark(ClientMod, Port, ConcurrentConnections, Requests, MessageLength) ->
     code_loader:start(),
     {ok, _} = application:ensure_all_started(tls_bench),
@@ -17,7 +28,7 @@ benchmark(ClientMod, Port, ConcurrentConnections, Requests, MessageLength) ->
     ServerTag = tlsb_config:get_server_by_port(Port),
 
     ReqPerConnection = round(Requests/ ConcurrentConnections),
-    Message = Message = <<0:MessageLength/little-signed-integer-unit:8>>,
+    Message = Message = <<?SENT_BYTE:MessageLength/little-signed-integer-unit:8>>,
     SeqPerClient = lists:seq(1, ReqPerConnection),
 
     ?INFO_MSG("## start testing on ~p:~p, server stack: ~p, client stack: ~p", [Host, Port, ServerTag, ClientMod]),
@@ -65,6 +76,7 @@ recv(_Socket, Bytes, _Timeout) when Bytes =< 0 ->
 recv(Socket, Bytes, Timeout) ->
     case essl:recv(Socket, Timeout) of
         {essl, Socket, Data} ->
+            ok = ?CHECK_DATA(Data),
             recv(Socket, Bytes - byte_size(Data), Timeout);
         {essl_closed, Socket} ->
             closed;
