@@ -16,7 +16,8 @@ get_config(Mod, ServerConfs) -> [
 get_tls_opt(Mod, Conf) ->
     TlsOpt = tlsb_utils:lookup(tls_opt, Conf),
     Ciphers = get_ciphers(Mod, tlsb_utils:lookup(ciphers, TlsOpt)),
-    tlsb_utils:replace(ciphers, Ciphers, TlsOpt).
+    TlsOpt2 = tlsb_utils:replace(ciphers, Ciphers, TlsOpt),
+    TlsOpt2 ++ get_mod_tls(tlsb_utils:lookup(Mod, Conf)).
 
 get_server_by_port(Port) ->
     {ok, Confs} = tlsb_utils:env(servers),
@@ -39,6 +40,9 @@ get_server_by_port(Port) ->
     end.
 
 %internals
+
+get_mod_tls(Opt) ->
+    tlsb_utils:lookup(tls_opt, Opt, []).
 
 get_port(Opt) ->
     tlsb_utils:lookup(port, Opt).
