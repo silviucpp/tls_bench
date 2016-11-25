@@ -8,6 +8,8 @@
 -define(MOD_FAST_TLS, fast_tls).
 -define(MOD_TCP, gen_tcp).
 
+-define(ALL_STACKS, [?MOD_ETLS, ?MOD_SSL, ?MOD_P1_TLS, ?MOD_FAST_TLS, ?MOD_TCP]).
+
 %logs
 
 -define(PRINT_MSG(Format, Args),

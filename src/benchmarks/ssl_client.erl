@@ -14,12 +14,13 @@ benchmark(ClientMod, Port, ConcurrentConnections, Requests, MessageLength) ->
     RecvTimeout = tlsb_utils:lookup(recv_timeout, ClientOpt),
     TcpOpt = tlsb_utils:lookup(tcp_opt, ClientOpt),
     TlsOpt = tlsb_config:get_tls_opt(ClientMod, ClientOpt),
+    ServerTag = tlsb_config:get_server_by_port(Port),
 
     ReqPerConnection = round(Requests/ ConcurrentConnections),
     Message = Message = <<0:MessageLength/little-signed-integer-unit:8>>,
     SeqPerClient = lists:seq(1, ReqPerConnection),
 
-    ?INFO_MSG("## start testing on ~p:~p", [Host, Port]),
+    ?INFO_MSG("## start testing on ~p:~p, server stack: ~p, client stack: ~p", [Host, Port, ServerTag, ClientMod]),
     ?INFO_MSG("## requests per connection: ~p msg length: ~s total requests: ~p concurrency level: ~p", [
         ReqPerConnection,
         tlsb_utils:format_size(MessageLength),
