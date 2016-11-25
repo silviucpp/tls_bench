@@ -24,11 +24,11 @@ connect(Mod, Host, Port, TcpOptions, TlsOptions, Timeout) ->
             etls:connect(Host, Port, TcpOptions ++ TlsOptions, Timeout);
         ?MOD_FAST_TLS ->
             {ok, TcpSocket} = gen_tcp:connect(Host, Port, TcpOptions, Timeout),
-            {ok, TlsSocket} = fast_tls:tcp_to_tls(TcpSocket, TlsOptions),
+            {ok, TlsSocket} = fast_tls:tcp_to_tls(TcpSocket, [connect|TlsOptions]),
             {ok, TlsSocket};
         ?MOD_P1_TLS ->
             {ok, TcpSocket} = gen_tcp:connect(Host, Port, TcpOptions, Timeout),
-            {ok, TlsSocket} = p1_tls:tcp_to_tls(TcpSocket, TlsOptions),
+            {ok, TlsSocket} = p1_tls:tcp_to_tls(TcpSocket, [connect|TlsOptions]),
             {ok, TlsSocket};
         ?MOD_SSL ->
             ssl:connect(Host, Port, TcpOptions ++ TlsOptions, Timeout);
