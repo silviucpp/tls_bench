@@ -120,8 +120,13 @@ getopts(#state{socket = Socket, mod = Mod}, Opt) ->
         ?MOD_TCP ->
             inet:getopts(Socket, Opt);
         _ ->
-            #tlssock{tcpsock = TcpSocket} = Socket,
-            inet:getopts(TcpSocket, Opt)
+            case is_record(Socket, tlssock) of
+                true ->
+                    #tlssock{tcpsock = TcpSocket} = Socket,
+                    inet:getopts(TcpSocket, Opt);
+                _ ->
+                    inet:getopts(Socket, Opt)
+            end
     end.
 
 controlling_process(#state{socket = Socket, mod = Mod}, Pid) ->
