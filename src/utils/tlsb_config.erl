@@ -9,6 +9,7 @@ get_config(Mod, ServerConfs) -> [
     {acceptors, tlsb_utils:lookup(acceptors, ServerConfs)},
     {listen_opt, tlsb_utils:lookup(listen_opt, ServerConfs)},
     {tls_opt, get_tls_opt(Mod, ServerConfs)},
+    {tcp_opt, tlsb_utils:lookup(tcp_opt, ServerConfs)},
     {listen_port, get_port(tlsb_utils:lookup(Mod, ServerConfs))}
 ].
 
