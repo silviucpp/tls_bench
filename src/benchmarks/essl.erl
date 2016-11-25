@@ -4,6 +4,7 @@
 -include("tls_bench.hrl").
 
 -record(state, {socket, mod, tls_opt}).
+-record(tlssock, {tcpsock :: inet:socket(), tlsport :: port()}).
 
 -export([
     connect/6,
@@ -11,6 +12,7 @@
     accept/1,
     handshake/1,
     setopts/2,
+    getopts/2,
     controlling_process/2,
     close/1,
     send/2,
@@ -107,6 +109,19 @@ setopts(#state{socket = Socket, mod = Mod}, Options) ->
             ssl:setopts(Socket, Options);
         ?MOD_TCP ->
             inet:setopts(Socket, Options)
+    end.
+
+getopts(#state{socket = Socket, mod = Mod}, Opt) ->
+    case Mod of
+        ?MOD_ETLS ->
+            undefined;
+        ?MOD_SSL ->
+            ssl:getopts(Socket, Opt);
+        ?MOD_TCP ->
+            inet:getopts(Socket, Opt);
+        _ ->
+            #tlssock{tcpsock = TcpSocket} = Socket,
+            inet:getopts(TcpSocket, Opt)
     end.
 
 controlling_process(#state{socket = Socket, mod = Mod}, Pid) ->

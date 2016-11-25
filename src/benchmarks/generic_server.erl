@@ -22,6 +22,7 @@ server(Module, Config) ->
     ?INFO_MSG("~p listen_opt: ~200p", [Module, ListenOpt]),
     ?INFO_MSG("~p tls_opt: ~200p", [Module, TlsOpt]),
     ?INFO_MSG("~p tcp_opt: ~200p", [Module, TcpOpt]),
+    ?INFO_MSG("~p tcp buffering: ~200p", [Module, essl:getopts(LSocket, [recbuf, sndbuf, buffer])]),
 
     lists:foreach(fun(_) -> spawn(fun() -> accept(LSocket, TcpOpt) end) end, lists:seq(1, Acceptors)).
 
