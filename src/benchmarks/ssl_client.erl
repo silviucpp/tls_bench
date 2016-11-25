@@ -45,7 +45,7 @@ benchmark(ClientMod, Port, ConcurrentConnections, Requests, MessageLength) ->
             ok = essl:send(Socket, Message)
         end,
 
-        ok = lists:foreach(SendFun, SeqPerClient),
+        spawn(fun() -> lists:foreach(SendFun, SeqPerClient) end),
 
         case recv(Socket, ReqPerConnection*MessageLength, RecvTimeout) of
             ok ->
