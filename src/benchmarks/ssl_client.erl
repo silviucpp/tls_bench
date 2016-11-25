@@ -45,11 +45,16 @@ benchmark(ClientMod, Port, ConcurrentConnections, Requests, MessageLength) ->
     BandwidthSize = 2*MessageLength*Requests,
     BytesPerSec = BandwidthSize/TsSec,
 
-    ?INFO_MSG(<<"## completed in :~p ms">>, [TsMs]),
-    ?INFO_MSG(<<"## bandwidth throughput: ~s/s">>, [tlsb_utils:format_size(BytesPerSec)]).
+    ?INFO_MSG("## completed in :~p ms", [TsMs]),
+    ?INFO_MSG("## bandwidth throughput: ~s/s", [tlsb_utils:format_size(BytesPerSec)]).
 
-recv(_Socket, 0, _Timeout) ->
-    ok;
+recv(_Socket, Bytes, _Timeout) when Bytes =< 0 ->
+    case Bytes < 0 of
+        true ->
+            ?ERROR_MSG("unexpected number of bytes received", []);
+        _ ->
+            ok
+    end;
 recv(Socket, Bytes, Timeout) ->
     case essl:recv(Socket, Timeout) of
         {essl, Socket, Data} ->
