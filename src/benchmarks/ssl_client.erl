@@ -34,7 +34,13 @@ benchmark(ClientMod, Port, ConcurrentConnections, Requests, MessageLength) ->
         end,
 
         ok = lists:foreach(SendFun, SeqPerClient),
-        recv(Socket, ReqPerConnection*MessageLength, RecvTimeout)
+
+        case recv(Socket, ReqPerConnection*MessageLength, RecvTimeout) of
+            ok ->
+                essl:close(Socket);
+            _ ->
+                ok
+        end
     end,
 
     {Ts, _} = timer:tc(fun() -> multi_spawn:do_work(ClientFun, ConcurrentConnections) end),
@@ -60,7 +66,7 @@ recv(Socket, Bytes, Timeout) ->
         {essl, Socket, Data} ->
             recv(Socket, Bytes - byte_size(Data), Timeout);
         {essl_closed, Socket} ->
-            ok;
+            closed;
         Error ->
             ?ERROR_MSG("Client received unexpected msg: ~p",[Error]),
             {error, Error}

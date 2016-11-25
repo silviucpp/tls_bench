@@ -12,6 +12,7 @@
     handshake/1,
     setopts/2,
     controlling_process/2,
+    close/1,
     send/2,
     recv/1,
     recv/2
@@ -131,6 +132,20 @@ controlling_process(#state{socket = Socket, mod = Mod}, Pid) ->
             ssl:controlling_process(Socket, Pid);
         ?MOD_TCP ->
             gen_tcp:controlling_process(Socket, Pid)
+    end.
+
+close(#state{socket = Socket, mod = Mod}) ->
+    case Mod of
+        ?MOD_ETLS ->
+            etls:close(Socket);
+        ?MOD_FAST_TLS ->
+            fast_tls:close(Socket);
+        ?MOD_P1_TLS ->
+            p1_tls:close(Socket);
+        ?MOD_SSL ->
+            ssl:close(Socket);
+        ?MOD_TCP ->
+            gen_tcp:close(Socket)
     end.
 
 send(#state{socket = Socket, mod = Mod}, Data) ->
