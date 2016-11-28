@@ -1,0 +1,243 @@
+diff --git a/lib/crypto/c_src/crypto.c b/lib/crypto/c_src/crypto.c
+index 00fc81c..887ab21 100644
+--- a/lib/crypto/c_src/crypto.c
++++ b/lib/crypto/c_src/crypto.c
+@@ -51,11 +51,17 @@
+ #include <openssl/bn.h>
+ #include <openssl/objects.h>
+ #include <openssl/rc4.h>
++#ifndef OPENSSL_IS_BORINGSSL
+ #include <openssl/rc2.h>
++#endif
+ #include <openssl/blowfish.h>
+ #include <openssl/rand.h>
+ #include <openssl/evp.h>
+ #include <openssl/hmac.h>
++#ifdef OPENSSL_IS_BORINGSSL
++#include <openssl/dh.h>
++#include <openssl/asn1.h>
++#endif
+ 
+ 
+ /* Helper macro to construct a OPENSSL_VERSION_NUMBER.
+@@ -68,9 +74,11 @@
+     OpenSSL_version(MAJ,MIN,FIX,('a'-1))
+ 
+ 
++#ifndef OPENSSL_IS_BORINGSSL
+ #if OPENSSL_VERSION_NUMBER >= OpenSSL_version_plain(1,0,0)
+ #include <openssl/modes.h>
+ #endif
++#endif
+ 
+ #include "crypto_callback.h"
+ 
+@@ -92,9 +100,11 @@
+     && !defined(OPENSSL_NO_SHA512) && defined(NID_sha512)
+ # define HAVE_SHA512
+ #endif
++#ifndef OPENSSL_IS_BORINGSSL
+ #if OPENSSL_VERSION_NUMBER >= OpenSSL_version(0,9,7,'e')
+ # define HAVE_DES_ede3_cfb_encrypt
+ #endif
++#endif
+ 
+ #if OPENSSL_VERSION_NUMBER >= OpenSSL_version(0,9,8,'o') \
+ 	&& !defined(OPENSSL_NO_EC) \
+@@ -103,9 +113,11 @@
+ # define HAVE_EC
+ #endif
+ 
++#ifndef OPENSSL_IS_BORINGSSL
+ #if OPENSSL_VERSION_NUMBER >= OpenSSL_version(0,9,8,'c')
+ # define HAVE_AES_IGE
+ #endif
++#endif
+ 
+ #if OPENSSL_VERSION_NUMBER >= OpenSSL_version_plain(1,0,1)
+ # define HAVE_EVP_AES_CTR
+@@ -413,7 +425,9 @@ struct digest_type_t digest_types[] =
+ {
+     {{"md4"}, {&EVP_md4}},
+     {{"md5"}, {&EVP_md5}},
++#ifndef OPENSSL_IS_BORINGSSL
+     {{"ripemd160"}, {&EVP_ripemd160}},
++#endif
+     {{"sha"}, {&EVP_sha1}},
+     {{"sha224"},
+ #ifdef HAVE_SHA224
+@@ -470,7 +484,9 @@ struct cipher_type_t cipher_types[] =
+ {
+     {{"rc2_cbc"}, {&EVP_rc2_cbc}},
+     {{"des_cbc"}, {COND_NO_DES_PTR(&EVP_des_cbc)}},
++#ifndef OPENSSL_IS_BORINGSSL
+     {{"des_cfb"}, {COND_NO_DES_PTR(&EVP_des_cfb8)}},
++#endif
+     {{"des_ecb"}, {COND_NO_DES_PTR(&EVP_des_ecb)}},
+     {{"des_ede3_cbc"}, {COND_NO_DES_PTR(&EVP_des_ede3_cbc)}},
+     {{"des_ede3_cbf"}, /* Misspelled, retained */
+@@ -487,23 +503,75 @@ struct cipher_type_t cipher_types[] =
+      {NULL}
+ #endif
+     },
++#ifndef OPENSSL_IS_BORINGSSL
+     {{"blowfish_cbc"}, {&EVP_bf_cbc}},
+     {{"blowfish_cfb64"}, {&EVP_bf_cfb64}},
+     {{"blowfish_ofb64"}, {&EVP_bf_ofb}},
+     {{"blowfish_ecb"}, {&EVP_bf_ecb}},
++#endif
+     {{"aes_cbc"}, {&EVP_aes_128_cbc}, 16},
+     {{"aes_cbc"}, {&EVP_aes_192_cbc}, 24},
+     {{"aes_cbc"}, {&EVP_aes_256_cbc}, 32},
+     {{"aes_cbc128"}, {&EVP_aes_128_cbc}},
+     {{"aes_cbc256"}, {&EVP_aes_256_cbc}},
++#ifndef OPENSSL_IS_BORINGSSL
+     {{"aes_cfb8"}, {&EVP_aes_128_cfb8}},
+     {{"aes_cfb128"}, {&EVP_aes_128_cfb128}},
++#endif
+     {{"aes_ecb"}, {&EVP_aes_128_ecb}, 16},
+     {{"aes_ecb"}, {&EVP_aes_192_ecb}, 24},
+     {{"aes_ecb"}, {&EVP_aes_256_ecb}, 32},
+     {{NULL}}
+ };
+ 
++#ifdef OPENSSL_IS_BORINGSSL
++int EVP_CIPHER_type(const EVP_CIPHER * ctx);
++
++/* Convert the various cipher NIDs and dummies to a proper OID NID */
++int EVP_CIPHER_type(const EVP_CIPHER * ctx)
++{
++	int nid;
++	const ASN1_OBJECT *otmp;
++	nid = EVP_CIPHER_nid(ctx);
++	switch (nid) {
++	case NID_rc2_cbc:
++	case NID_rc2_64_cbc:
++	case NID_rc2_40_cbc:
++		return NID_rc2_cbc;
++	case NID_rc4:
++	case NID_rc4_40:
++		return NID_rc4;
++	case NID_aes_128_cfb128:
++	case NID_aes_128_cfb8:
++	case NID_aes_128_cfb1:
++		return NID_aes_128_cfb128;
++	case NID_aes_192_cfb128:
++	case NID_aes_192_cfb8:
++	case NID_aes_192_cfb1:
++		return NID_aes_192_cfb128;
++	case NID_aes_256_cfb128:
++	case NID_aes_256_cfb8:
++	case NID_aes_256_cfb1:
++		return NID_aes_256_cfb128;
++	case NID_des_cfb64:
++	case NID_des_cfb8:
++	case NID_des_cfb1:
++		return NID_des_cfb64;
++	case NID_des_ede3_cfb64:
++	case NID_des_ede3_cfb8:
++	case NID_des_ede3_cfb1:
++		return NID_des_cfb64;
++	default:		/* Check it has an OID and it is valid */
++		otmp = OBJ_nid2obj(nid);
++		if (!otmp || !otmp->data)
++			nid = NID_undef;
++		ASN1_OBJECT_free((ASN1_OBJECT *)otmp);
++		return nid;
++	}
++}
++#endif
++
++
+ static struct cipher_type_t* get_cipher_type(ERL_NIF_TERM type, size_t key_len);
+ 
+ /*
+@@ -590,7 +658,9 @@ static int init(ErlNifEnv* env, ERL_NIF_TERM load_info)
+     const ERL_NIF_TERM* tpl_array;
+     int vernum;
+     ErlNifBinary lib_bin;
++#ifdef HAVE_DYNAMIC_CRYPTO_LIB
+     char lib_buf[1000];
++#endif
+ 
+     if (!verify_lib_version())
+ 	return 0;
+@@ -713,7 +783,9 @@ static int init(ErlNifEnv* env, ERL_NIF_TERM load_info)
+ 	return 0;
+     }
+     
++#ifndef OPENSSL_IS_BORINGSSL
+     CRYPTO_set_mem_functions(ccb->crypto_alloc, ccb->crypto_realloc, ccb->crypto_free);
++#endif
+     
+ #ifdef OPENSSL_THREADS
+     if (nlocks > 0) {
+@@ -1444,6 +1516,7 @@ static ERL_NIF_TERM block_crypt_nif(ErlNifEnv* env, int argc, const ERL_NIF_TERM
+ 
+ static ERL_NIF_TERM aes_cfb_8_crypt(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+ {/* (Key, IVec, Data, IsEncrypt) */
++#ifndef OPENSSL_IS_BORINGSSL
+      ErlNifBinary key, ivec, text;
+      AES_KEY aes_key;
+      unsigned char ivec_clone[16]; /* writable copy */
+@@ -1465,6 +1538,9 @@ static ERL_NIF_TERM aes_cfb_8_crypt(ErlNifEnv* env, int argc, const ERL_NIF_TERM
+                       (argv[3] == atom_true));
+      CONSUME_REDS(env,text);
+      return ret;
++#else
++    return atom_notsup;
++#endif
+ }
+ 
+ static ERL_NIF_TERM aes_ige_crypt_nif(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+@@ -2987,7 +3063,9 @@ static EC_KEY* ec_key_new(ErlNifEnv* env, ERL_NIF_TERM curve_arg)
+     EC_KEY *key = NULL;
+     int c_arity = -1;
+     const ERL_NIF_TERM* curve;
++#ifndef OPENSSL_IS_BORINGSSL
+     ErlNifBinary seed;
++#endif
+     BIGNUM *p = NULL;
+     BIGNUM *a = NULL;
+     BIGNUM *b = NULL;
+@@ -3028,8 +3106,10 @@ static EC_KEY* ec_key_new(ErlNifEnv* env, ERL_NIF_TERM curve_arg)
+ 		goto out_err;
+ 
+ 	    field_bits = BN_num_bits(p);
++#ifndef OPENSSL_IS_BORINGSSL
+ 	    if (field_bits > OPENSSL_ECC_MAX_FIELD_BITS)
+ 		goto out_err;
++#endif
+ 
+ 	    /* create the EC_GROUP structure */
+ 	    group = EC_GROUP_new_curve_GFp(p, a, b, NULL);
+@@ -3103,9 +3183,11 @@ static EC_KEY* ec_key_new(ErlNifEnv* env, ERL_NIF_TERM curve_arg)
+         if (!group)
+             goto out_err;
+ 
++#ifndef OPENSSL_IS_BORINGSSL
+ 	if (enif_inspect_binary(env, prime[2], &seed)) {
+ 	    EC_GROUP_set_seed(group, seed.data, seed.size);
+ 	}
++#endif
+ 
+ 	if (!term2point(env, curve[2], group, &point))
+ 	    goto out_err;
+@@ -3348,7 +3430,7 @@ static ERL_NIF_TERM ecdsa_sign_nif(ErlNifEnv* env, int argc, const ERL_NIF_TERM
+ 
+     enif_alloc_binary(ECDSA_size(key), &ret_bin);
+ 
+-    i = ECDSA_sign(md->type, digest_bin.data, len,
++    i = ECDSA_sign(EVP_MD_type(md), digest_bin.data, len,
+ 		   ret_bin.data, &dsa_s_len, key);
+ 
+     EC_KEY_free(key);
+@@ -3398,7 +3480,7 @@ static ERL_NIF_TERM ecdsa_verify_nif(ErlNifEnv* env, int argc, const ERL_NIF_TER
+ 	|| !get_ec_key(env, argv[3], atom_undefined, argv[4], &key))
+ 	goto badarg;
+ 
+-    i = ECDSA_verify(md->type, digest_bin.data, len,
++    i = ECDSA_verify(EVP_MD_type(md), digest_bin.data, len,
+ 		     sign_bin.data, sign_bin.size, key);
+ 
+     EC_KEY_free(key);

@@ -89,6 +89,61 @@ net.inet.ip.portrange.first=1024
 net.inet.ip.portrange.last=65535
 ``` 
 
+Results
+-----------
+
+Test was performed on OSX 10.12.1 MacBook Pro (Retina, 15-inch, Mid 2014) CPU: 2.5 GHz Intel Core i7, Mem: 16 GB 1600 MHz DDR3
+
+For compiling erlang 19.1 with boring ssl I had to apply the `test/boringssl.patch`
+
+Also after compiling boringssl I merged `libdecrepit.a` with `libcrypto.a` running:
+
+```sh
+libtool -static -o libcrypto.a decrepit/libdecrepit.a crypto/libcrypto.a
+```
+
+Then I compiled erlang as follow:
+
+```sh
+./otp_build autoconf
+./configure --prefix=/usr/local/erlang-boringssl/ --disable-dynamic-ssl-lib --with-ssl={path_to_boring_ssl}
+export MAKEFLAGS=-j8
+make
+sudo make install
+```
+
+erlang with boringssl:
+
+```
+crypto:info_lib().
+[{<<"OpenSSL">>,268443823,<<"BoringSSL">>}]
+```
+
+erlang without boringssl:
+
+```
+1> crypto:info_lib().
+[{<<"OpenSSL">>,268443807, <<"OpenSSL 1.0.2j  26 Sep 2016">>}]
+```
+
+benchmark:
+
+```
+ssl_client:benchmark(ssl, EchoServerPort, 50, 80000, 30*1024).
+```
+
+| cipher                    | erlang-boringssl | erlang-openssl) | p1_tls         | fasttls        |      etls     |
+|:-------------------------:|:----------------:|:---------------:|:--------------:|:------------------------------:|
+| AES128-GCM-SHA256         | 723.45 MB/s      | 683.16 MB/s     | 761.89 MB/s    | 745.74 MB/s    | 413.94 MB/s   |																	
+|AES128-SHA					| 419.98 MB/s	   | 409.95 MB/s     | 385.60 MB/s    |	390.19 MB/s    | 280.31 MB/s   |
+|AES128-SHA256				| 308.74 MB/s      | 323.80 MB/s     | 242.97 MB/s	  | 242.38 MB/s	   | 248.77 MB/s   |
+|ECDHE-RSA-AES128-GCM-SHA256| 693.55 MB/s      | 643.06 MB/s     | 756.51 MB/s    |	764.23 MB/s    | 415.65 MB/s   |
+
+Also I compiled `p1_tls` and `fast_tls` with `boringssl`. Results for `AES128-GCM-SHA256` cipher are:
+
+- `p1_tls` - > 764.81 MB/s
+- `fast_tls` - > 766.10 MB/s
+
 Notes
 ----------- 
  
