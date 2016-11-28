@@ -136,7 +136,7 @@ Benchmark: (All results are in MB/s)
 ssl_client:benchmark(ssl, EchoServerPort, 50, 80000, 30*1024).
 ```
 
-| cipher                    | erlang-boringssl | erlang-openssl) | p1_tls         | fasttls        |      etls     |
+| cipher                    | erlang-boringssl | erlang-openssl  | p1_tls         | fasttls        |      etls     |
 |:-------------------------:|:----------------:|:---------------:|:--------------:|:---------------|--------------:|
 |AES128-GCM-SHA256          | 723.45           | 683.16          | 761.89         | 745.74         | 413.94        |																	
 |AES128-SHA					| 419.98	       | 409.95          | 385.60         |	390.19         | 280.31        |
