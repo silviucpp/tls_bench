@@ -151,8 +151,6 @@ Also I compiled `p1_tls` and `fast_tls` with `boringssl`. Results for `AES128-GC
 Notes
 ----------- 
  
-- `etls` doesn't support the `backlog` option. It's using a default one which is too low so on my box the lib it's starting
-to timeout if I use a big concurrency level. I had to patch `etls` to increase the backlog.
 - `etls` doesn't support the `ciphers` tls option. So there is no way to limit the ciphers that are supported server side.
 
 [1]:https://github.com/kzemek/etls
