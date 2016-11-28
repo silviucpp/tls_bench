@@ -115,15 +115,13 @@ sudo make install
 erlang with boringssl:
 
 ```
-crypto:info_lib().
-[{<<"OpenSSL">>,268443823,<<"BoringSSL">>}]
+crypto:info_lib() => [{<<"OpenSSL">>,268443823,<<"BoringSSL">>}]
 ```
 
 erlang without boringssl:
 
 ```
-1> crypto:info_lib().
-[{<<"OpenSSL">>,268443807, <<"OpenSSL 1.0.2j  26 Sep 2016">>}]
+crypto:info_lib() => [{<<"OpenSSL">>,268443807, <<"OpenSSL 1.0.2j  26 Sep 2016">>}]
 ```
 
 benchmark:
@@ -133,7 +131,7 @@ ssl_client:benchmark(ssl, EchoServerPort, 50, 80000, 30*1024).
 ```
 
 | cipher                    | erlang-boringssl | erlang-openssl) | p1_tls         | fasttls        |      etls     |
-|:-------------------------:|:----------------:|:---------------:|:--------------:|:------------------------------:|
+|:-------------------------:|:----------------:|:---------------:|:--------------:|:---------------|--------------:|
 | AES128-GCM-SHA256         | 723.45 MB/s      | 683.16 MB/s     | 761.89 MB/s    | 745.74 MB/s    | 413.94 MB/s   |																	
 |AES128-SHA					| 419.98 MB/s	   | 409.95 MB/s     | 385.60 MB/s    |	390.19 MB/s    | 280.31 MB/s   |
 |AES128-SHA256				| 308.74 MB/s      | 323.80 MB/s     | 242.97 MB/s	  | 242.38 MB/s	   | 248.77 MB/s   |
