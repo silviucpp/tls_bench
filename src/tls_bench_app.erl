@@ -7,9 +7,6 @@
 -export([start/2, stop/1]).
 
 start(_StartType, _StartArgs) ->
-    % for some reason is crashing if it's in the app.src
-    % todo: investigate why
-    {ok, _} = application:ensure_all_started(fast_tls),
     ok = start_servers(),
     tls_bench_sup:start_link().
 
