@@ -29,20 +29,35 @@ server(Module, Config) ->
 accept(LSocket, TcpOpt) ->
     {ok, Socket} = essl:accept(LSocket),
 
-    LoopFun = fun() ->
-        %?INFO_MSG("Connection accepted: ~p", [self()]),
-        case essl:handshake(Socket) of
-            ok ->
-                ok = essl:setopts(Socket, TcpOpt),
-                loop(Socket);
-            Unexpected ->
-                ?ERROR_MSG("handshake failed:~p", [Unexpected]),
-                essl:close(Socket)
-        end
+    ClientProcess = spawn(fun() -> client_process(TcpOpt) end),
+
+    case essl:controlling_process(Socket, ClientProcess) of
+        ok ->
+            ClientProcess ! {attach_socket, Socket};
+        _ ->
+            ?ERROR_MSG("failed to set socket ~p control process: ~p", [Socket, ClientProcess]),
+            ClientProcess ! stop
     end,
 
-    ok = essl:controlling_process(Socket, spawn(LoopFun)),
     accept(LSocket, TcpOpt).
+
+client_process(TcpOpt) ->
+    receive
+        {attach_socket, Socket} ->
+            %?INFO_MSG("Connection accepted: ~p", [self()]),
+            case essl:handshake(Socket) of
+                ok ->
+                    ok = essl:setopts(Socket, TcpOpt),
+                    loop(Socket);
+                Unexpected ->
+                    ?ERROR_MSG("handshake failed:~p", [Unexpected]),
+                    essl:close(Socket)
+            end;
+        stop ->
+            ok
+    after 30000 ->
+        ?ERROR_MSG("No start_looping received in 30 seconds. ", [])
+    end.
 
 loop(Socket) ->
     case essl:recv(Socket) of
