@@ -27,19 +27,22 @@ server(Module, Config) ->
     lists:foreach(fun(_) -> spawn(fun() -> accept(LSocket, TcpOpt) end) end, lists:seq(1, Acceptors)).
 
 accept(LSocket, TcpOpt) ->
-    {ok, Socket} = essl:accept(LSocket),
+    case essl:accept(LSocket) of
+        {ok, Socket} ->
+            ClientProcess = spawn(fun() -> client_process(TcpOpt) end),
 
-    ClientProcess = spawn(fun() -> client_process(TcpOpt) end),
+            case essl:controlling_process(Socket, ClientProcess) of
+                ok ->
+                    ClientProcess ! {attach_socket, Socket};
+                _ ->
+                    ?ERROR_MSG("failed to set socket ~p control process: ~p", [Socket, ClientProcess]),
+                    ClientProcess ! stop
+            end,
 
-    case essl:controlling_process(Socket, ClientProcess) of
-        ok ->
-            ClientProcess ! {attach_socket, Socket};
-        _ ->
-            ?ERROR_MSG("failed to set socket ~p control process: ~p", [Socket, ClientProcess]),
-            ClientProcess ! stop
-    end,
-
-    accept(LSocket, TcpOpt).
+            accept(LSocket, TcpOpt);
+        UnexpectedError ->
+            ?ERROR_MSG("unexpected error on accepting incoming connection: ~p", [UnexpectedError])
+    end.
 
 client_process(TcpOpt) ->
     receive

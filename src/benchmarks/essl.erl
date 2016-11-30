@@ -71,11 +71,19 @@ accept(#state{socket = LSocket, tls_opt = TlsOpt, mod = Mod}) ->
         ?MOD_SSL ->
             ssl:transport_accept(LSocket);
         ?MOD_P1_TLS ->
-            {ok, Sock} = gen_tcp:accept(LSocket),
-            p1_tls:tcp_to_tls(Sock, TlsOpt);
+            case gen_tcp:accept(LSocket) of
+                {ok, Sock} ->
+                    p1_tls:tcp_to_tls(Sock, TlsOpt);
+                UnexpectedResp ->
+                    UnexpectedResp
+            end;
         ?MOD_FAST_TLS ->
-            {ok, Sock} = gen_tcp:accept(LSocket),
-            fast_tls:tcp_to_tls(Sock, TlsOpt);
+            case gen_tcp:accept(LSocket) of
+                {ok, Sock} ->
+                    fast_tls:tcp_to_tls(Sock, TlsOpt);
+                UnexpectedResp ->
+                    UnexpectedResp
+            end;
         ?MOD_TCP ->
             gen_tcp:accept(LSocket)
     end,
