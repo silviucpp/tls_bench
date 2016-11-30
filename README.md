@@ -90,8 +90,14 @@ Erlang 19.1 without boringssl:
 crypto:info_lib() => [{<<"OpenSSL">>,268443807, <<"OpenSSL 1.0.2j  26 Sep 2016">>}]
 ```
 
-Results
+Benchmark
 -----------
+
+```
+ssl_client:benchmark(ssl, EchoServerPort, 50, 80000, 30*1024).
+```
+
+##### On Mac OS:
 
 Test was performed on :
 
@@ -99,13 +105,12 @@ Test was performed on :
 OSX 10.12.1 MacBook Pro (Retina, 15-inch, Mid 2014) 
 CPU: 2.5 GHz Intel Core i7, 
 Memory: 16 GB 1600 MHz DDR3
+Erlang version: 19.1
+OpenSSL version: OpenSSL 1.0.2j  26 Sep 2016
 ```
 
 Benchmark: (All results are in MB/s)
 
-```
-ssl_client:benchmark(ssl, EchoServerPort, 50, 80000, 30*1024).
-```
 
 | cipher                    | erlang-boringssl | erlang-openssl  | p1_tls         | fasttls        |      etls     |
 |:-------------------------:|:----------------:|:---------------:|:--------------:|:---------------|--------------:|
@@ -118,6 +123,32 @@ Also I compiled `p1_tls` and `fast_tls` with `boringssl`. Results for `AES128-GC
 
 - `p1_tls` - > 764.81 MB/s
 - `fast_tls` - > 766.10 MB/s
+
+##### On Ubuntu 14.04:
+
+```
+Ubuntu 14.04
+CPU: Intel(R) Core(TM) i5-2500 CPU @ 3.30GHz
+Memory: 8 GB
+Erlang version 19.1
+OpenSSL version: OpenSSL 1.0.2g  1 Mar 2016
+```
+
+| cipher                    | erlang-boringssl | erlang-openssl  | p1_tls         | fasttls        |      etls     |
+|:-------------------------:|:----------------:|:---------------:|:--------------:|:---------------|--------------:|
+|AES128-GCM-SHA256          | N/A              | 1230 (1.23 GB)  | 184.13         | 184.61         | N/A           |																	
+|AES128-SHA					| N/A	           | 840.26          | 111.84         |	110.78         | N/A           |
+|AES128-SHA256				| N/A              | 615.83          | 65.96	      | 66.28	       | N/A           |
+|ECDHE-RSA-AES128-GCM-SHA256| N/A              | 1220 (1.22 GB)  | 180.42         |	181.21         | N/A           |
+
+Notes:
+
+- I didn't tested Erlang compiled with `BoringSSL`
+- I didn't tested `etls` because requires a new compiler than the one available on Ubuntu 14.04
+- As you already might notice my system is using an `openssl` version newer than the one that comes with the distribution
+- It's very surprising that on Linux (I tested 3 different machines) the performances are so bad for `p1_tls` and
+`fast_tls`. CPU it's 100 % on all cores but most probaly problem is somewhere in how OpenSSL is used. I also tried them compiled
+with `BoringSSL` and results were the same. Didn't digged yet to see why
 
 
 Notes
