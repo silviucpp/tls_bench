@@ -6,7 +6,6 @@
     lookup/2,
     lookup/3,
     replace/3,
-    now/0,
     format_size/1
 ]).
 
@@ -26,10 +25,6 @@ lookup(Key, List, Default) ->
 
 replace(Key, Value, List) ->
     lists:keyreplace(Key, 1, List, {Key, Value}).
-
-now() ->
-    {M, S, U} = erlang:now(),
-    integer_to_binary(M * 1000000000 + S * 1000 + U).
 
 format_size(Size) ->
     format_size(Size, ["B","KB","MB","GB","TB","PB"]).
