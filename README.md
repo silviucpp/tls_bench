@@ -52,63 +52,23 @@ having a length of `MessageLength`.
 Tunnings
 ----------- 
 
-You need to tune your kernel at least to increase the number of file descriptors that can be opened and the number of 
-connections in the accept queue.
+You need to tune your kernel at least to increase the number of file descriptors that can be opened and the number of  connections in the accept queue.
 
-##### Mac OS
+In the testing we used the following 'sysctl.conf' files : 
 
-For `Mac OS` you can create the `/etc/sysctl.conf` file (by default doesn't exist) with the following settings :
-  
-```sh
-# Nice articles explining fine tuning for BSD kernel:
-# - https://calomel.org/freebsd_network_tuning.html
+- [Mac OS][6]  (by default doesn't exist so needs to be created in '/etc/sysctl.conf`)
+- [Ubuntu 14.04][7]
 
-xkern.maxproc=2048
-kern.maxprocperuid=2048
-kern.maxfilesperproc=300000
-kern.maxfiles=300000
+Compile Erlang with BoringSSL
+----------------------------
 
-# increase the number of sockets allowed in the accept queue
-# use "netstat -Lan" to watch the queue
-
-kern.ipc.soacceptqueue=30000
-kern.ipc.somaxconn=30000
-
-# kern.ipc.maxsockbuf is the maximum amount of memory, in bytes, which can be allocated 
-# to a single socket. "netstat -m" displays the amount of network
-# buffers used. Increase kern.ipc.maxsockbuf only if the counters for 
-# "mbufs denied" or "mbufs delayed" are greater than zero(0).
-
-kern.ipc.maxsockbuf=4194304
-kern.ipc.nmbclusters=32768
-
-# increase the port range
-
-net.inet.ip.portrange.randomized=0
-net.inet.ip.portrange.first=1024
-net.inet.ip.portrange.last=65535
-``` 
-
-Results
------------
-
-Test was performed on :
-
-```
-OSX 10.12.1 MacBook Pro (Retina, 15-inch, Mid 2014) 
-CPU: 2.5 GHz Intel Core i7, 
-Memory: 16 GB 1600 MHz DDR3
-```
-
-For compiling Erlang 19.1 with boring ssl I had to apply the `test/boringssl.patch`
-
-Also after compiling `boringssl` I merged `libdecrepit.a` with `libcrypto.a` running:
+For compiling Erlang 19.1 with `boringssl` I had to write a [patch][8]. Also after compiling `boringssl` I merged `libdecrepit.a` with `libcrypto.a` running:
 
 ```sh
 libtool -static -o libcrypto.a decrepit/libdecrepit.a crypto/libcrypto.a
 ```
 
-Then I compiled erlang as follow:
+Then I compiled `Erlang` as follow:
 
 ```sh
 ./otp_build autoconf
@@ -130,6 +90,17 @@ Erlang 19.1 without boringssl:
 crypto:info_lib() => [{<<"OpenSSL">>,268443807, <<"OpenSSL 1.0.2j  26 Sep 2016">>}]
 ```
 
+Results
+-----------
+
+Test was performed on :
+
+```
+OSX 10.12.1 MacBook Pro (Retina, 15-inch, Mid 2014) 
+CPU: 2.5 GHz Intel Core i7, 
+Memory: 16 GB 1600 MHz DDR3
+```
+
 Benchmark: (All results are in MB/s)
 
 ```
@@ -148,6 +119,7 @@ Also I compiled `p1_tls` and `fast_tls` with `boringssl`. Results for `AES128-GC
 - `p1_tls` - > 764.81 MB/s
 - `fast_tls` - > 766.10 MB/s
 
+
 Notes
 ----------- 
  
@@ -158,3 +130,6 @@ Notes
 [3]:https://github.com/processone/fast_tls/
 [4]:http://erlang.org/doc/man/ssl.html
 [5]:http://erlang.org/doc/man/gen_server.html
+[6]:https://raw.githubusercontent.com/silviucpp/tls_bench/master/test/osx_sysctl.conf
+[7]:https://raw.githubusercontent.com/silviucpp/tls_bench/master/test/ubuntu_sysctl.conf
+[8]:https://github.com/silviucpp/tls_bench/blob/master/test/boringssl.patch
