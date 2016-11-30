@@ -147,9 +147,8 @@ Notes:
 - I didn't tested `etls` because requires a new compiler than the one available on Ubuntu 14.04
 - As you already might notice my system is using an `openssl` version newer than the one that comes with the distribution
 - It's very surprising that on Linux (I tested 3 different machines) the performances are so bad for `p1_tls` and
-`fast_tls`. CPU it's 100 % on all cores but most probaly problem is somewhere in how OpenSSL is used. I also tried them compiled
-with `BoringSSL` and results were the same. Didn't digged yet to see why
-
+`fast_tls`. CPU it's 100 % on all cores but most probaly problem is somewhere in how OpenSSL is used. I also tried them compiled with `BoringSSL` and results were the same. 
+I suspected a problem with `gen_tcp` (both beeing based on this), but benchmarking `gen_tcp` had pretty good results, over 4.3 GB/s
 
 Notes
 ----------- 
