@@ -47,11 +47,10 @@ benchmark(ClientMod, Port, ConcurrentConnections, Requests, MessageLength) ->
 
         spawn(fun() -> lists:foreach(SendFun, SeqPerClient) end),
 
-        case recv(Socket, ReqPerConnection*MessageLength, RecvTimeout) of
-            ok ->
-                essl:close(Socket);
-            _ ->
-                ok
+        try
+            recv(Socket, ReqPerConnection*MessageLength, RecvTimeout)
+        after
+            essl:close(Socket)
         end
     end,
 
@@ -83,6 +82,6 @@ recv(Socket, Bytes, Timeout) ->
         {essl_closed, Socket} ->
             closed;
         Error ->
-            ?ERROR_MSG("Client received unexpected msg: ~p",[Error]),
+            ?ERROR_MSG("Client received unexpected msg: ~p remaining bytes: ~p",[Error, Bytes]),
             {error, Error}
     end.
