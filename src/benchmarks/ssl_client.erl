@@ -4,11 +4,9 @@
 
 -export([benchmark/5]).
 
--define(SENT_BYTE, 2).
-
 -ifdef(check_data_valid).
 check(Data) ->
-    Data = <<?SENT_BYTE:(byte_size(Data))/little-signed-integer-unit:8>>,
+    Data = <<0:(byte_size(Data))/little-signed-integer-unit:8>>,
     ok.
 -define(CHECK_DATA(Data), check(Data)).
 -else.
@@ -28,7 +26,7 @@ benchmark(ClientMod, Port, ConcurrentConnections, Requests, MessageLength) ->
     ServerTag = tlsb_config:get_server_by_port(Port),
 
     ReqPerConnection = round(Requests/ ConcurrentConnections),
-    Message = Message = <<?SENT_BYTE:MessageLength/little-signed-integer-unit:8>>,
+    Message = Message = <<0:MessageLength/little-signed-integer-unit:8>>,
     SeqPerClient = lists:seq(1, ReqPerConnection),
 
     ?INFO_MSG("## start testing on ~p:~p, server stack: ~p, client stack: ~p", [Host, Port, ServerTag, ClientMod]),
