@@ -49,6 +49,8 @@ get_port(Opt) ->
 
 get_ciphers(_, null) ->
     null;
+get_ciphers(?MOD_ERLTLS, Ciphers) ->
+    Ciphers;
 get_ciphers(?MOD_SSL, Ciphers) ->
     Ciphers;
 get_ciphers(_, Ciphers) ->

@@ -22,6 +22,8 @@
 
 connect(Mod, Host, Port, TcpOptions, TlsOptions, Timeout) ->
     Resp = case Mod of
+        ?MOD_ERLTLS ->
+            erltls:connect(Host, Port, TcpOptions ++ TlsOptions, Timeout);
         ?MOD_ETLS ->
             etls:connect(Host, Port, TcpOptions ++ TlsOptions, Timeout);
         ?MOD_FAST_TLS ->
@@ -49,6 +51,8 @@ listen(Mod, Port, ListenOptions, TlsOptions) ->
     ListenOpt = get_listen_options(Mod, TlsOptions, ListenOptions),
 
     Resp = case Mod of
+        ?MOD_ERLTLS ->
+            erltls:listen(Port, ListenOpt);
         ?MOD_ETLS ->
             etls:listen(Port, ListenOpt);
         ?MOD_SSL ->
@@ -66,6 +70,8 @@ listen(Mod, Port, ListenOptions, TlsOptions) ->
 
 accept(#state{socket = LSocket, tls_opt = TlsOpt, mod = Mod}) ->
     Resp = case Mod of
+        ?MOD_ERLTLS ->
+            erltls:transport_accept(LSocket);
         ?MOD_ETLS ->
             etls:accept(LSocket);
         ?MOD_SSL ->
@@ -97,6 +103,8 @@ accept(#state{socket = LSocket, tls_opt = TlsOpt, mod = Mod}) ->
 
 handshake(#state{socket = Socket, mod = Mod}) ->
     case Mod of
+        ?MOD_ERLTLS ->
+            erltls:ssl_accept(Socket);
         ?MOD_ETLS ->
             etls:handshake(Socket);
         ?MOD_SSL ->
@@ -107,6 +115,8 @@ handshake(#state{socket = Socket, mod = Mod}) ->
 
 setopts(#state{socket = Socket, mod = Mod}, Options) ->
     case Mod of
+        ?MOD_ERLTLS ->
+            erltls:setopts(Socket, Options);
         ?MOD_ETLS ->
             etls:setopts(Socket, Options);
         ?MOD_FAST_TLS ->
@@ -121,6 +131,8 @@ setopts(#state{socket = Socket, mod = Mod}, Options) ->
 
 getopts(#state{socket = Socket, mod = Mod}, Opt) ->
     case Mod of
+        ?MOD_ERLTLS ->
+            erltls:getopts(Socket, Opt);
         ?MOD_ETLS ->
             undefined;
         ?MOD_SSL ->
@@ -139,6 +151,8 @@ getopts(#state{socket = Socket, mod = Mod}, Opt) ->
 
 controlling_process(#state{socket = Socket, mod = Mod}, Pid) ->
     case Mod of
+        ?MOD_ERLTLS ->
+            erltls:controlling_process(Socket, Pid);
         ?MOD_ETLS ->
             etls:controlling_process(Socket, Pid);
         ?MOD_FAST_TLS ->
@@ -153,6 +167,8 @@ controlling_process(#state{socket = Socket, mod = Mod}, Pid) ->
 
 close(#state{socket = Socket, mod = Mod}) ->
     case Mod of
+        ?MOD_ERLTLS ->
+            erltls:close(Socket);
         ?MOD_ETLS ->
             etls:close(Socket);
         ?MOD_FAST_TLS ->
@@ -167,6 +183,8 @@ close(#state{socket = Socket, mod = Mod}) ->
 
 send(#state{socket = Socket, mod = Mod}, Data) ->
     case Mod of
+        ?MOD_ERLTLS ->
+            erltls:send(Socket, Data);
         ?MOD_ETLS ->
             etls:send(Socket, Data);
         ?MOD_FAST_TLS ->
@@ -216,7 +234,7 @@ read_tcp(?MOD_P1_TLS, Socket, TlsData) ->
     Data.
 
 get_listen_options(Mod, TlsOpt, ListenOpt) ->
-    case Mod =:= ?MOD_ETLS orelse Mod =:= ?MOD_SSL of
+    case Mod =:= ?MOD_ETLS orelse Mod =:= ?MOD_SSL orelse Mod =:= ?MOD_ERLTLS of
         true ->
             ListenOpt ++ TlsOpt;
         _ ->

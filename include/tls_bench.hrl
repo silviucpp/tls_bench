@@ -6,9 +6,10 @@
 -define(MOD_SSL, ssl).
 -define(MOD_P1_TLS, p1_tls).
 -define(MOD_FAST_TLS, fast_tls).
+-define(MOD_ERLTLS, erltls).
 -define(MOD_TCP, gen_tcp).
 
--define(ALL_STACKS, [?MOD_ETLS, ?MOD_SSL, ?MOD_P1_TLS, ?MOD_FAST_TLS, ?MOD_TCP]).
+-define(ALL_STACKS, [?MOD_ETLS, ?MOD_SSL, ?MOD_P1_TLS, ?MOD_FAST_TLS, ?MOD_TCP, ?MOD_ERLTLS]).
 
 %logs
 
