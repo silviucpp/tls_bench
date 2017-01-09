@@ -137,10 +137,10 @@ OpenSSL version: OpenSSL 1.0.2g  1 Mar 2016
 
 | cipher                    | erlang-boringssl | erlang-openssl  | p1_tls    | fasttls    |  etls     | erltls    |
 |:-------------------------:|:----------------:|:---------------:|:---------:|:----------:|:---------:|:---------:|
-|AES128-GCM-SHA256          | N/A              | 1230 (1.23 GB)  | 184.13    | 184.61     | N/A       |N/A		  |																	
-|AES128-SHA					| N/A	           | 840.26          | 111.84    | 110.78     | N/A       |N/A		  |
-|AES128-SHA256				| N/A              | 615.83          | 65.96	 | 66.28	  | N/A       |N/A		  |
-|ECDHE-RSA-AES128-GCM-SHA256| N/A              | 1220 (1.22 GB)  | 180.42    | 181.21     | N/A       |N/A		  |
+|AES128-GCM-SHA256          | N/A              | 1230 (1.23 GB)  | 184.13    | 184.61     | N/A       |1.49 GB/s  |																	
+|AES128-SHA					| N/A	           | 840.26          | 111.84    | 110.78     | N/A       |938.37	  |
+|AES128-SHA256				| N/A              | 615.83          | 65.96	 | 66.28	  | N/A       |670.26     |
+|ECDHE-RSA-AES128-GCM-SHA256| N/A              | 1220 (1.22 GB)  | 180.42    | 181.21     | N/A       |1.46 GB/s  |
 
 Notes:
 
