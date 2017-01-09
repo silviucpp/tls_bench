@@ -9,6 +9,7 @@ Included libraries:
 - [p1_tls][2]
 - [fast_tls][3]
 - [ssl][4]
+- [erltls][9]
 - [gen_tcp][5]
 
 Quick start
@@ -112,16 +113,16 @@ OpenSSL version: OpenSSL 1.0.2j  26 Sep 2016
 Benchmark: (All results are in MB/s)
 
 
-| cipher                    | erlang-boringssl | erlang-openssl  | p1_tls         | fasttls        |      etls     |
-|:-------------------------:|:----------------:|:---------------:|:--------------:|:---------------|--------------:|
-|AES128-GCM-SHA256          | 723.45           | 683.16          | 761.89         | 745.74         | 413.94        |																	
-|AES128-SHA					| 419.98	       | 409.95          | 385.60         |	390.19         | 280.31        |
-|AES128-SHA256				| 308.74           | 323.80          | 242.97	      | 242.38	       | 248.77        |
-|ECDHE-RSA-AES128-GCM-SHA256| 693.55           | 643.06          | 756.51         |	764.23         | 415.65        |
+| cipher                    | erlang-boringssl | erlang-openssl  | p1_tls    | fasttls    | etls      | erltls   | 
+|:-------------------------:|:----------------:|:---------------:|:---------:|:----------:|:---------:|:--------:|
+|AES128-GCM-SHA256          | 723.45           | 683.16          | 761.89    | 745.74     | 413.94    |1.06 GB/s |														
+|AES128-SHA					| 419.98	       | 409.95          | 385.60    | 390.19     | 280.31    |573.79	 |
+|AES128-SHA256				| 308.74           | 323.80          | 242.97	 | 242.38	  | 248.77    |417.61	 |
+|ECDHE-RSA-AES128-GCM-SHA256| 693.55           | 643.06          | 756.51    | 764.23     | 415.65    |1.09 GB/s |
 
 Also I compiled `p1_tls` and `fast_tls` with `boringssl`. Results for `AES128-GCM-SHA256` cipher are:
 
-- `p1_tls` - > 764.81 MB/s
+- `p1_tls`   - > 764.81 MB/s
 - `fast_tls` - > 766.10 MB/s
 
 ##### On Ubuntu 14.04:
@@ -134,12 +135,12 @@ Erlang version 19.1
 OpenSSL version: OpenSSL 1.0.2g  1 Mar 2016
 ```
 
-| cipher                    | erlang-boringssl | erlang-openssl  | p1_tls         | fasttls        |      etls     |
-|:-------------------------:|:----------------:|:---------------:|:--------------:|:---------------|--------------:|
-|AES128-GCM-SHA256          | N/A              | 1230 (1.23 GB)  | 184.13         | 184.61         | N/A           |																	
-|AES128-SHA					| N/A	           | 840.26          | 111.84         |	110.78         | N/A           |
-|AES128-SHA256				| N/A              | 615.83          | 65.96	      | 66.28	       | N/A           |
-|ECDHE-RSA-AES128-GCM-SHA256| N/A              | 1220 (1.22 GB)  | 180.42         |	181.21         | N/A           |
+| cipher                    | erlang-boringssl | erlang-openssl  | p1_tls    | fasttls    |  etls     | erltls    |
+|:-------------------------:|:----------------:|:---------------:|:---------:|:----------:|:---------:|:---------:|
+|AES128-GCM-SHA256          | N/A              | 1230 (1.23 GB)  | 184.13    | 184.61     | N/A       |N/A		  |																	
+|AES128-SHA					| N/A	           | 840.26          | 111.84    | 110.78     | N/A       |N/A		  |
+|AES128-SHA256				| N/A              | 615.83          | 65.96	 | 66.28	  | N/A       |N/A		  |
+|ECDHE-RSA-AES128-GCM-SHA256| N/A              | 1220 (1.22 GB)  | 180.42    | 181.21     | N/A       |N/A		  |
 
 Notes:
 
@@ -147,13 +148,17 @@ Notes:
 - I didn't tested `etls` because requires a new compiler than the one available on Ubuntu 14.04
 - As you already might notice my system is using an `openssl` version newer than the one that comes with the distribution
 - It's very surprising that on Linux (I tested 3 different machines) the performances are so bad for `p1_tls` and
-`fast_tls`. CPU it's 100 % on all cores but most probaly problem is somewhere in how OpenSSL is used. I also tried them compiled with `BoringSSL` and results were the same. 
-I suspected a problem with `gen_tcp` (both beeing based on this), but benchmarking `gen_tcp` had pretty good results, over 4.3 GB/s
+`fast_tls`. CPU it's 100 % on all cores but most probably problem is somewhere in how OpenSSL is used. I also tried them compiled with `BoringSSL` and results were the same. 
+I suspected a problem with `gen_tcp` (both being based on this), but benchmarking `gen_tcp` had pretty good results, over 4.3 GB/s
 
 Notes
 ----------- 
  
-- `etls` doesn't support the `ciphers` tls option. So there is no way to limit the ciphers that are supported server side.
+- `etls` is not supporting the `ciphers` tls option. So there is no way to limit the ciphers that are supported server side.
+- Code for `etls` is disabled as time to compile the lib you require a lot of dependencies that are not available on some systems. To enable it uncomment:
+    - in `rebar.config` the etls line where the dep is downloaded
+    - add `etls` to `tls_bench.app.src` in the `applications` section
+    - uncomment `ok = generic_server:start(?MOD_ETLS),` in `tls_bench_app.erl` 
 
 [1]:https://github.com/kzemek/etls
 [2]:https://github.com/processone/tls
@@ -163,3 +168,4 @@ Notes
 [6]:https://raw.githubusercontent.com/silviucpp/tls_bench/master/test/osx_sysctl.conf
 [7]:https://raw.githubusercontent.com/silviucpp/tls_bench/master/test/ubuntu_sysctl.conf
 [8]:https://github.com/silviucpp/tls_bench/blob/master/test/boringssl.patch
+[9]:https://github.com/silviucpp/erltls
